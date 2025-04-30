@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   getIncomes,
   addIncome,
@@ -34,40 +34,169 @@ import {
   useDisclosure,
   VStack,
 } from "@chakra-ui/react";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiFileText } from "react-icons/fi";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-
-// Loading spinner
-function Spinner() {
-  return (
-    <div className="flex justify-center items-center h-40">
-      <svg className="animate-spin h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-      </svg>
-    </div>
-  );
-}
-
-// CSV Export Helper
-function exportCSV(data) {
-  if (!data.length) return;
-  const header = Object.keys(data[0]).join(",");
-  const rows = data.map(row => Object.values(row).join(","));
-  const csvContent = [header, ...rows].join("\n");
-  const blob = new Blob([csvContent], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "income_report.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
+import html2canvas from "html2canvas";
+import download from "downloadjs";
+import teaLogo from "../assets/teatfac.png";
 
 // Categories for select
 const INCOME_CATEGORIES = [
   "Tea Sales", "Retail", "Export", "Tourism", "Grants", "Other"
 ];
+
+function formatMoney(amount) {
+  return "LKR" + Number(amount).toLocaleString();
+}
+
+// High-quality PNG report component
+const IncomePNGReport = React.forwardRef(
+  ({ totalIncome, categoryTotals, date }, ref) => (
+    <div
+      ref={ref}
+      style={{
+        width: 700,
+        background: "#fbfbfb",
+        borderRadius: 24,
+        boxShadow: "0 8px 32px rgba(32,77,42,0.10)",
+        border: "3px solid #2e865f",
+        padding: 0,
+        overflow: "hidden",
+        fontFamily: "Inter, system-ui, sans-serif",
+        color: "#204d2a",
+        margin: "0 auto",
+      }}
+    >
+      {/* Header with Logo */}
+      <div
+        style={{
+          background: "linear-gradient(90deg,#17612d 0%,#2e865f 100%)",
+          padding: "32px 0 20px 0",
+          textAlign: "center",
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            margin: "0 auto 12px auto",
+            width: 96,
+            height: 96,
+            borderRadius: "50%",
+            background: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 12px rgba(46,134,95,0.13)",
+            border: "4px solid #e6f9ed",
+          }}
+        >
+          <img
+            src={teaLogo}
+            alt="Logo"
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: "50%",
+              objectFit: "cover",
+            }}
+          />
+        </div>
+        <div
+          style={{
+            fontWeight: 800,
+            fontSize: 28,
+            color: "#fff",
+            letterSpacing: 1,
+          }}
+        >
+          Newlands Tea Factory
+        </div>
+        <div
+          style={{
+            fontWeight: 500,
+            fontSize: 16,
+            color: "#e6f9ed",
+            marginTop: 4,
+            letterSpacing: 0.5,
+          }}
+        >
+          Income Report
+        </div>
+      </div>
+      {/* Main Content */}
+      <div style={{ padding: "36px 32px 24px 32px" }}>
+        <div style={{ fontWeight: 600, fontSize: 20, marginBottom: 16 }}>
+          Total Income: <span style={{ color: "#2e865f" }}>{formatMoney(totalIncome)}</span>
+        </div>
+        <table style={{ width: "100%", fontSize: 17, marginBottom: 18 }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left", padding: "10px 0", color: "#17612d" }}>Category</th>
+              <th style={{ textAlign: "right", padding: "10px 0", color: "#17612d" }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(categoryTotals).map(([cat, amt]) => (
+              <tr key={cat}>
+                <td style={{ padding: "9px 0", fontWeight: 500 }}>{cat}</td>
+                <td style={{ padding: "9px 0", textAlign: "right", fontWeight: 600 }}>
+                  {formatMoney(amt)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div
+          style={{
+            background: "#e6f9ed",
+            borderRadius: 12,
+            padding: "18px 20px",
+            margin: "18px 0",
+            fontSize: 16,
+            color: "#17612d",
+            fontWeight: 500,
+            textAlign: "center",
+          }}
+        >
+          <span>
+            This report summarizes all income sources for Newlands Tea Factory.
+          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 28,
+            fontSize: 15,
+            color: "#64748b",
+          }}
+        >
+          <span>
+            <b>Generated by:</b> Financial Admin
+          </span>
+          <span>
+            <b>Date:</b> {date}
+          </span>
+        </div>
+      </div>
+      {/* Footer */}
+      <div
+        style={{
+          background: "#17612d",
+          color: "#e6f9ed",
+          padding: "14px 0",
+          textAlign: "center",
+          fontSize: 14,
+          borderRadius: "0 0 20px 20px",
+          fontWeight: 500,
+          letterSpacing: 0.5,
+        }}
+      >
+        &copy; {new Date().getFullYear()} Newlands Tea Factory &mdash; All rights reserved.
+      </div>
+    </div>
+  )
+);
 
 function AddEditIncomeModal({ isOpen, onClose, onSave, initialData }) {
   const [form, setForm] = useState({
@@ -246,8 +375,8 @@ export default function Incomes() {
   const [search, setSearch] = useState("");
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const toast = useToast();
+  const pngRef = useRef();
 
-  // Initial fetch with loading animation
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(async () => {
@@ -259,7 +388,6 @@ export default function Incomes() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Filter incomes by search and date
   useEffect(() => {
     let data = incomes;
     if (search.trim()) {
@@ -299,7 +427,7 @@ export default function Incomes() {
     toast({ title: "Income deleted.", status: "info", duration: 1200, isClosable: true });
   };
 
-  // For chart: group by date (sum)
+  // Chart data
   const chartData = [];
   filtered
     .sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -312,6 +440,45 @@ export default function Incomes() {
 
   const totalIncome = filtered.reduce((sum, i) => sum + Number(i.amount), 0);
 
+  // Category totals for report
+  const categoryTotals = {};
+  INCOME_CATEGORIES.forEach(cat => {
+    categoryTotals[cat] = filtered
+      .filter(i => i.category === cat)
+      .reduce((sum, i) => sum + Number(i.amount), 0);
+  });
+
+  const todayStr = new Date().toLocaleDateString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric"
+  });
+
+  // PNG Download handler
+  const handleDownloadPNG = async () => {
+    if (!pngRef.current) return;
+    toast({ title: "Generating PNG report...", status: "info", duration: 1200 });
+    setTimeout(async () => {
+      const canvas = await html2canvas(pngRef.current, {
+        backgroundColor: "#fbfbfb",
+        scale: 3,
+        useCORS: true,
+      });
+      const dataURL = canvas.toDataURL("image/png");
+      download(dataURL, `income_report_${todayStr.replace(/\s/g, "_")}.png`, "image/png");
+      toast({ title: "PNG report downloaded!", status: "success", duration: 1200 });
+    }, 100);
+  };
+
+  function Spinner() {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <svg className="animate-spin h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -320,19 +487,40 @@ export default function Incomes() {
           <h2 className="text-3xl font-bold text-green-900 mb-1">Income Dashboard</h2>
           <p className="text-gray-600">Track all income sources and trends for your tea factory</p>
         </div>
-        <Button
-          onClick={() => { setModalOpen(true); setEditData(null); }}
-          colorScheme="green"
-          size="md"
-          className="mt-4 md:mt-0 shadow-lg"
-          leftIcon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M12 4v16m8-8H4"/>
-            </svg>
-          }
-        >
-          Add Income
-        </Button>
+        <div className="flex flex-col md:flex-row gap-3 mt-4 md:mt-0">
+          <Button
+            onClick={() => { setModalOpen(true); setEditData(null); }}
+            colorScheme="green"
+            size="md"
+            className="shadow-lg"
+            leftIcon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M12 4v16m8-8H4"/>
+              </svg>
+            }
+          >
+            Add Income
+          </Button>
+          <Button
+            onClick={handleDownloadPNG}
+            colorScheme="green"
+            size="md"
+            className="shadow-lg"
+            leftIcon={<FiFileText />}
+          >
+            Export Report
+          </Button>
+        </div>
+      </div>
+
+      {/* Hidden PNG Report Template (for download) */}
+      <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <IncomePNGReport
+          ref={pngRef}
+          totalIncome={totalIncome}
+          categoryTotals={categoryTotals}
+          date={todayStr}
+        />
       </div>
 
       {/* Summary and Chart */}
@@ -344,7 +532,7 @@ export default function Incomes() {
           <div>
             <div className="text-gray-500 text-base">Total Income</div>
             <div className="text-2xl font-bold text-green-700">
-              ${totalIncome.toLocaleString()}
+              {formatMoney(totalIncome)}
             </div>
           </div>
         </div>
@@ -400,14 +588,6 @@ export default function Incomes() {
         >
           Reset
         </Button>
-        <Button
-          onClick={() => exportCSV(filtered)}
-          colorScheme="green"
-          variant="outline"
-          className="ml-0 md:ml-4 mt-3 md:mt-0"
-        >
-          Export CSV
-        </Button>
       </div>
 
       {/* Table */}
@@ -438,7 +618,7 @@ export default function Incomes() {
                   <Td>{income.category}</Td>
                   <Td>
                     <Badge colorScheme="green" variant="subtle" fontSize="md">
-                      ${income.amount}
+                      {formatMoney(income.amount)}
                     </Badge>
                   </Td>
                   <Td>{new Date(income.date).toLocaleDateString()}</Td>
@@ -476,7 +656,6 @@ export default function Incomes() {
         )}
       </Box>
 
-      {/* Add/Edit Modal */}
       <AddEditIncomeModal
         isOpen={modalOpen}
         onClose={() => {

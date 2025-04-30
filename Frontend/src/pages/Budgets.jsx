@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   getBudgets,
   addBudget,
@@ -8,8 +8,6 @@ import {
 } from "../api/api";
 import { Link } from "react-router-dom";
 import { Bar } from "react-chartjs-2";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Chart as ChartJS,
@@ -21,6 +19,9 @@ import {
   Legend,
 } from "chart.js";
 import { Button, Badge } from "@chakra-ui/react";
+import html2canvas from "html2canvas";
+import download from "downloadjs";
+import teaLogo from "../assets/teatfac.png";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const CATEGORIES = [
@@ -42,9 +43,8 @@ const CATEGORIES = [
 ];
 
 function formatMoney(amount) {
-  return amount.toLocaleString();
+  return Number(amount).toLocaleString();
 }
-
 function getMonthAvg(expenses) {
   if (!expenses.length) return 0;
   const months = new Set(
@@ -57,7 +57,159 @@ function getMonthAvg(expenses) {
   return Math.round(total / months.size);
 }
 
-// BEAUTIFUL, RESPONSIVE, LIGHT MODAL
+// PNG report for only present categories
+const BudgetPNGReport = React.forwardRef(
+  ({ trackedBudgets, date }, ref) => (
+    <div
+      ref={ref}
+      style={{
+        width: 700,
+        background: "#fbfbfb",
+        borderRadius: 24,
+        boxShadow: "0 8px 32px rgba(32,77,42,0.10)",
+        border: "3px solid #2e865f",
+        padding: 0,
+        overflow: "hidden",
+        fontFamily: "Inter, system-ui, sans-serif",
+        color: "#204d2a",
+        margin: "0 auto",
+      }}
+    >
+      <div
+        style={{
+          background: "linear-gradient(90deg,#17612d 0%,#2e865f 100%)",
+          padding: "32px 0 20px 0",
+          textAlign: "center",
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            margin: "0 auto 12px auto",
+            width: 96,
+            height: 96,
+            borderRadius: "50%",
+            background: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 12px rgba(46,134,95,0.13)",
+            border: "4px solid #e6f9ed",
+          }}
+        >
+          <img
+            src={teaLogo}
+            alt="Logo"
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: "50%",
+              objectFit: "cover",
+            }}
+          />
+        </div>
+        <div
+          style={{
+            fontWeight: 800,
+            fontSize: 28,
+            color: "#fff",
+            letterSpacing: 1,
+          }}
+        >
+          Newlands Tea Factory
+        </div>
+        <div
+          style={{
+            fontWeight: 500,
+            fontSize: 16,
+            color: "#e6f9ed",
+            marginTop: 4,
+            letterSpacing: 0.5,
+          }}
+        >
+          Budget Report
+        </div>
+      </div>
+      <div style={{ padding: "36px 32px 24px 32px" }}>
+        <table style={{ width: "100%", fontSize: 17, marginBottom: 18 }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left", padding: "10px 0", color: "#17612d" }}>Category</th>
+              <th style={{ textAlign: "right", padding: "10px 0", color: "#17612d" }}>Budget</th>
+              <th style={{ textAlign: "right", padding: "10px 0", color: "#17612d" }}>Spent</th>
+              <th style={{ textAlign: "right", padding: "10px 0", color: "#17612d" }}>Remaining</th>
+            </tr>
+          </thead>
+          <tbody>
+            {trackedBudgets
+              .filter(b => b.amount > 0 || b.spent > 0)
+              .map(b => (
+                <tr key={b.category}>
+                  <td style={{ padding: "9px 0", fontWeight: 500 }}>{b.category}</td>
+                  <td style={{ padding: "9px 0", textAlign: "right", fontWeight: 600 }}>
+                    LKR{formatMoney(b.amount)}
+                  </td>
+                  <td style={{ padding: "9px 0", textAlign: "right", fontWeight: 600 }}>
+                    LKR{formatMoney(b.spent)}
+                  </td>
+                  <td style={{ padding: "9px 0", textAlign: "right", fontWeight: 600 }}>
+                    LKR{formatMoney(b.amount - b.spent)}
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+        <div
+          style={{
+            background: "#e6f9ed",
+            borderRadius: 12,
+            padding: "18px 20px",
+            margin: "18px 0",
+            fontSize: 16,
+            color: "#17612d",
+            fontWeight: 500,
+            textAlign: "center",
+          }}
+        >
+          <span>
+            This report summarizes all budget allocations for Newlands Tea Factory.
+          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 28,
+            fontSize: 15,
+            color: "#64748b",
+          }}
+        >
+          <span>
+            <b>Generated by:</b> Financial Admin
+          </span>
+          <span>
+            <b>Date:</b> {date}
+          </span>
+        </div>
+      </div>
+      <div
+        style={{
+          background: "#17612d",
+          color: "#e6f9ed",
+          padding: "14px 0",
+          textAlign: "center",
+          fontSize: 14,
+          borderRadius: "0 0 20px 20px",
+          fontWeight: 500,
+          letterSpacing: 0.5,
+        }}
+      >
+        &copy; {new Date().getFullYear()} Newlands Tea Factory &mdash; All rights reserved.
+      </div>
+    </div>
+  )
+);
+
 function BudgetModal({ open, onClose, onSave, initialData }) {
   const [form, setForm] = useState({
     category: "",
@@ -184,6 +336,7 @@ export default function Budgets() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const pngRef = useRef();
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -218,31 +371,6 @@ export default function Budgets() {
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 4);
 
-  const handleSave = async (data) => {
-    if (editData) {
-      await updateBudget(editData._id, data);
-    } else {
-      await addBudget(data);
-    }
-    const [budRes, expRes] = await Promise.all([getBudgets(), getExpenses()]);
-    setBudgets(budRes.data);
-    setExpenses(expRes.data);
-    setModalOpen(false);
-    setEditData(null);
-  };
-
-  const handleEdit = (b) => {
-    setEditData(b);
-    setModalOpen(true);
-  };
-
-  const handleDelete = async (id) => {
-    await deleteBudget(id);
-    const [budRes, expRes] = await Promise.all([getBudgets(), getExpenses()]);
-    setBudgets(budRes.data);
-    setExpenses(expRes.data);
-  };
-
   const chartData = {
     labels: trackedBudgets.map(b => b.category),
     datasets: [
@@ -273,41 +401,35 @@ export default function Budgets() {
     }
   };
 
-  const handleExport = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Newlands Tea Factory Budget Report", 14, 22);
-    doc.setFontSize(12);
-    doc.text("Generated on: " + new Date().toLocaleDateString(), 14, 30);
+  const todayStr = new Date().toLocaleDateString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric"
+  });
 
-    const tableColumn = ["Category", "Budget", "Spent", "Remaining"];
-    const tableRows = trackedBudgets.map(b => [
-      b.category,
-      "$" + formatMoney(b.amount),
-      "$" + formatMoney(b.spent),
-      "$" + formatMoney(b.amount - b.spent),
-    ]);
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 40,
-      theme: "striped",
-      styles: { fontSize: 11 },
-      headStyles: { fillColor: [32, 77, 42] },
-    });
-
-    doc.setFontSize(10);
-    doc.text(
-      "© " + new Date().getFullYear() + " Newlands Tea Factory. All rights reserved.",
-      14,
-      doc.internal.pageSize.height - 10
-    );
-
-    doc.save("budget_report.pdf");
+  // PNG Download handler
+  const handleDownloadPNG = async () => {
+    if (!pngRef.current) return;
+    setTimeout(async () => {
+      const canvas = await html2canvas(pngRef.current, {
+        backgroundColor: "#fbfbfb",
+        scale: 3,
+        useCORS: true,
+      });
+      const dataURL = canvas.toDataURL("image/png");
+      download(dataURL, `budget_report_${todayStr.replace(/\s/g, "_")}.png`, "image/png");
+    }, 100);
   };
 
   return (
     <div className="min-h-screen bg-[#f7faf8] pb-8">
+      {/* Export Report PNG */}
+      <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <BudgetPNGReport
+          ref={pngRef}
+          trackedBudgets={trackedBudgets}
+          date={todayStr}
+        />
+      </div>
+
       {/* Summary Cards */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -317,22 +439,22 @@ export default function Budgets() {
       >
         <div className="bg-white rounded-xl shadow p-6 flex flex-col">
           <div className="text-gray-500 text-sm">Total Budget</div>
-          <div className="text-3xl font-bold text-[#204d2a]">${formatMoney(totalBudget)}</div>
+          <div className="text-3xl font-bold text-[#204d2a]">LKR{formatMoney(totalBudget)}</div>
           <div className="text-xs text-gray-400 mt-1">FY {new Date().getFullYear()}</div>
         </div>
         <div className="bg-white rounded-xl shadow p-6 flex flex-col">
           <div className="text-gray-500 text-sm">Spent</div>
-          <div className="text-3xl font-bold text-green-600">${formatMoney(totalSpent)}</div>
+          <div className="text-3xl font-bold text-green-600">LKR{formatMoney(totalSpent)}</div>
           <div className="text-xs text-gray-400 mt-1">{percentSpent.toFixed(1)}% of budget</div>
         </div>
         <div className="bg-white rounded-xl shadow p-6 flex flex-col">
           <div className="text-gray-500 text-sm">Remaining</div>
-          <div className="text-3xl font-bold text-yellow-600">${formatMoney(totalRemaining)}</div>
+          <div className="text-3xl font-bold text-yellow-600">LKR{formatMoney(totalRemaining)}</div>
           <div className="text-xs text-gray-400 mt-1">{percentRemaining.toFixed(1)}% remaining</div>
         </div>
         <div className="bg-white rounded-xl shadow p-6 flex flex-col">
           <div className="text-gray-500 text-sm">Monthly Avg</div>
-          <div className="text-3xl font-bold text-[#204d2a]">${formatMoney(monthlyAvg)}</div>
+          <div className="text-3xl font-bold text-[#204d2a]">LKR{formatMoney(monthlyAvg)}</div>
           <div className="text-xs text-gray-400 mt-1">Last 12 months</div>
         </div>
       </motion.div>
@@ -376,18 +498,26 @@ export default function Budgets() {
                   </div>
                   <div className="flex flex-col sm:flex-row justify-between items-center mt-1 gap-2">
                     <span className="text-xs text-gray-500">
-                      Spent: ${formatMoney(b.spent)} / ${formatMoney(b.amount)}
+                      Spent: LKR{formatMoney(b.spent)} / LKR{formatMoney(b.amount)}
                     </span>
                     <div className="flex gap-2">
                       <button
                         className="text-xs text-blue-600 hover:underline"
-                        onClick={() => handleEdit(b)}
+                        onClick={() => {
+                          setEditData(b);
+                          setModalOpen(true);
+                        }}
                       >
                         Edit
                       </button>
                       <button
                         className="text-xs text-red-600 hover:underline"
-                        onClick={() => handleDelete(b._id)}
+                        onClick={async () => {
+                          await deleteBudget(b._id);
+                          const [budRes, expRes] = await Promise.all([getBudgets(), getExpenses()]);
+                          setBudgets(budRes.data);
+                          setExpenses(expRes.data);
+                        }}
                       >
                         Delete
                       </button>
@@ -418,7 +548,7 @@ export default function Budgets() {
                 colorScheme="green"
                 variant="outline"
                 className="w-full font-semibold rounded"
-                onClick={handleExport}
+                onClick={handleDownloadPNG}
               >
                 Export Report
               </Button>
@@ -500,7 +630,7 @@ export default function Budgets() {
                 <td className="py-2 px-4">{new Date(e.date).toLocaleDateString()}</td>
                 <td className="py-2 px-4">{e.category}</td>
                 <td className="py-2 px-4">{e.description}</td>
-                <td className="py-2 px-4">${formatMoney(e.amount)}</td>
+                <td className="py-2 px-4">LKR{formatMoney(e.amount)}</td>
                 <td className="py-2 px-4">
                   <Badge
                     colorScheme={
@@ -532,7 +662,18 @@ export default function Budgets() {
           setModalOpen(false);
           setEditData(null);
         }}
-        onSave={handleSave}
+        onSave={async (data) => {
+          if (editData) {
+            await updateBudget(editData._id, data);
+          } else {
+            await addBudget(data);
+          }
+          const [budRes, expRes] = await Promise.all([getBudgets(), getExpenses()]);
+          setBudgets(budRes.data);
+          setExpenses(expRes.data);
+          setModalOpen(false);
+          setEditData(null);
+        }}
         initialData={editData}
       />
 
