@@ -24,7 +24,6 @@ export default function Navbar() {
 
   const navLinks = [
     { to: "/", label: "Dashboard" },
-    { to: "/report", label: "Reports" },
     { to: "/income", label: "Income", hideOnMobile: true },
     { to: "/expense", label: "Expense", hideOnMobile: true },
     { to: "/budget", label: "Budget", hideOnMobile: true },

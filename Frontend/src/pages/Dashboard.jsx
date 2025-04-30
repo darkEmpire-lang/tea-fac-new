@@ -58,7 +58,7 @@ const dashboardCards = [
 function DashboardSpinner() {
   return (
     <Center minH="300px">
-      <div className="animate-spin rounded-full h-24 w-24 border-t-4 border-green-600 border-b-4 border-green-200"></div>
+      <div className="animate-spin rounded-full h-24 w-24 border-t-4 border-green-600 border-b-4"></div>
     </Center>
   );
 }
