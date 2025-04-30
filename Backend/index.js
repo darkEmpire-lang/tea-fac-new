@@ -6,6 +6,7 @@ import connectCloudinary from './config/cloudinary.js';
 import userRouter from './routes/userRoute.js';
 import bodyParser from 'body-parser'; // Use 'import' for body-parser
 import ticketRoutes from "./routes/ticketRoutes.js";
+import helmet from 'helmet'
 
 import incomeRoutes from './routes/incomeRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
@@ -47,16 +48,16 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
-// // Set up Helmet for Content Security Policy
-// app.use(
-//   helmet.contentSecurityPolicy({
-//     useDefaults: true,
-//     directives: {
-//       "script-src": ["'self'", "https://vercel.live"], // Allow scripts from vercel.live
-//       "default-src": ["'self'"],
-//     },
-//   })
-// );
+// Set up Helmet for Content Security Policy
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "script-src": ["'self'", "https://vercel.live"], // Allow scripts from vercel.live
+      "default-src": ["'self'"],
+    },
+  })
+);
 
 // Middleware
 app.use(express.json());
@@ -74,10 +75,12 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/budgets', budgetRoutes);
 
 
-// Root endpoint
+
+// Sample Route to Check Server Status
 app.get('/', (req, res) => {
-  res.send('API WORKING');
+  res.send({ message: "Newlands-tea-factory backend is working!" });
 });
+
 
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI;
