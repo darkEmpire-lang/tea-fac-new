@@ -57,6 +57,7 @@ function getMonthAvg(expenses) {
   return Math.round(total / months.size);
 }
 
+// BEAUTIFUL, RESPONSIVE, LIGHT MODAL
 function BudgetModal({ open, onClose, onSave, initialData }) {
   const [form, setForm] = useState({
     category: "",
@@ -100,9 +101,16 @@ function BudgetModal({ open, onClose, onSave, initialData }) {
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl p-8 shadow-2xl w-full max-w-md border border-green-200">
-        <h2 className="text-xl font-bold mb-6 text-[#204d2a]">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-2 sm:px-0"
+      style={{
+        background: "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+      }}
+    >
+      <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-2xl w-full max-w-md border border-green-200 animate-fadeIn">
+        <h2 className="text-xl font-bold mb-6 text-[#204d2a] text-center">
           {initialData ? "Edit Budget" : "Add Budget"}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -137,11 +145,11 @@ function BudgetModal({ open, onClose, onSave, initialData }) {
             />
           </div>
           {error && <div className="text-red-600 text-sm">{error}</div>}
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button
               colorScheme="green"
               type="submit"
-              className="flex-1"
+              className="w-full sm:w-auto"
             >
               {initialData ? "Update" : "Add"} Budget
             </Button>
@@ -150,13 +158,22 @@ function BudgetModal({ open, onClose, onSave, initialData }) {
               variant="outline"
               type="button"
               onClick={onClose}
-              className="flex-1"
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
           </div>
         </form>
       </div>
+      <style>{`
+        .animate-fadeIn {
+          animation: fadeInModal 0.3s;
+        }
+        @keyframes fadeInModal {
+          0% { opacity: 0; transform: scale(0.97);}
+          100% { opacity: 1; transform: scale(1);}
+        }
+      `}</style>
     </div>
   );
 }
@@ -291,33 +308,12 @@ export default function Budgets() {
 
   return (
     <div className="min-h-screen bg-[#f7faf8] pb-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className="bg-[#204d2a] text-white px-8 py-5 flex items-center justify-between rounded-t-xl shadow"
-      >
-        <span className="font-bold text-2xl flex items-center">
-          <svg className="w-7 h-7 mr-2" fill="none" viewBox="0 0 24 24">
-            <path fill="#fff" d="M12 2C6.48 2 2 6.48 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10C22 6.48 17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-4.41 3.59-8 8-8 4.41 0 8 3.59 8 8 0 4.41-3.59 8-8 8z"></path>
-            <path fill="#fff" d="M13 7h-2v6h6v-2h-4z"></path>
-          </svg>
-          Newlands Tea Factory
-        </span>
-        <div className="space-x-8 font-medium">
-          <Link to="/" className="hover:underline">Dashboard</Link>
-          <Link to="/finance" className="hover:underline">Finance</Link>
-          <Link to="/reports" className="hover:underline">Reports</Link>
-        </div>
-      </motion.div>
-
       {/* Summary Cards */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8 mb-6 px-8"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-8 mb-6 px-4 sm:px-8"
       >
         <div className="bg-white rounded-xl shadow p-6 flex flex-col">
           <div className="text-gray-500 text-sm">Total Budget</div>
@@ -342,7 +338,7 @@ export default function Budgets() {
       </motion.div>
 
       {/* Main Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 px-4 sm:px-8">
         {/* Budget Tracking */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -350,7 +346,7 @@ export default function Budgets() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="col-span-2"
         >
-          <div className="bg-white rounded-xl shadow p-6 mb-6">
+          <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-6">
             <div className="font-bold text-[#204d2a] mb-4">Budget Tracking</div>
             {trackedBudgets.length === 0 && (
               <div className="text-gray-400">No budgets set. Add a budget to start tracking.</div>
@@ -365,7 +361,7 @@ export default function Budgets() {
                   transition={{ duration: 0.4 }}
                   className="mb-4"
                 >
-                  <div className="flex justify-between items-center mb-1">
+                  <div className="flex flex-col sm:flex-row justify-between items-center mb-1 gap-2">
                     <span className="font-medium text-gray-700">{b.category}</span>
                     <span className={`text-sm font-bold ${b.percent >= 100 ? "text-red-600" : b.percent >= 80 ? "text-yellow-600" : "text-green-600"}`}>
                       {b.percent}%
@@ -378,13 +374,13 @@ export default function Budgets() {
                       layout
                     ></motion.div>
                   </div>
-                  <div className="flex justify-between items-center mt-1">
+                  <div className="flex flex-col sm:flex-row justify-between items-center mt-1 gap-2">
                     <span className="text-xs text-gray-500">
                       Spent: ${formatMoney(b.spent)} / ${formatMoney(b.amount)}
                     </span>
-                    <div>
+                    <div className="flex gap-2">
                       <button
-                        className="text-xs text-blue-600 hover:underline mr-2"
+                        className="text-xs text-blue-600 hover:underline"
                         onClick={() => handleEdit(b)}
                       >
                         Edit
@@ -408,31 +404,33 @@ export default function Budgets() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, delay: 0.3 }}
         >
-          <div className="bg-white rounded-xl shadow p-6 mb-6">
+          <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-6">
             <div className="font-bold text-[#204d2a] mb-4">Quick Actions</div>
-            <Button
-              colorScheme="green"
-              onClick={() => { setModalOpen(true); setEditData(null); }}
-              className="w-full mb-3 font-semibold rounded"
-            >
-              + Add New Budget
-            </Button>
-            <Button
-              colorScheme="green"
-              variant="outline"
-              className="w-full mb-3 font-semibold rounded"
-              onClick={handleExport}
-            >
-              Export Report
-            </Button>
-            <Button
-              colorScheme="yellow"
-              variant="outline"
-              className="w-full font-semibold rounded"
-              onClick={() => setShowAnalytics(true)}
-            >
-              View Analytics
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                colorScheme="green"
+                onClick={() => { setModalOpen(true); setEditData(null); }}
+                className="w-full font-semibold rounded"
+              >
+                + Add New Budget
+              </Button>
+              <Button
+                colorScheme="green"
+                variant="outline"
+                className="w-full font-semibold rounded"
+                onClick={handleExport}
+              >
+                Export Report
+              </Button>
+              <Button
+                colorScheme="yellow"
+                variant="outline"
+                className="w-full font-semibold rounded"
+                onClick={() => setShowAnalytics(true)}
+              >
+                View Analytics
+              </Button>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -441,13 +439,13 @@ export default function Budgets() {
       <AnimatePresence>
         {showAnalytics && (
           <motion.div
-            className="fixed inset-0 flex items-center justify-center z-50 bg-white bg-opacity-90"
+            className="fixed inset-0 flex items-center justify-center z-50 bg-white bg-opacity-90 px-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-2xl relative"
+              className="bg-white rounded-xl shadow-2xl p-4 sm:p-8 w-full max-w-2xl relative"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
@@ -460,7 +458,9 @@ export default function Budgets() {
                 &times;
               </button>
               <h2 className="text-xl font-bold mb-6 text-[#204d2a]">Budget Analytics</h2>
-              <Bar data={chartData} options={chartOptions} />
+              <div className="overflow-x-auto">
+                <Bar data={chartData} options={chartOptions} />
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -471,13 +471,13 @@ export default function Budgets() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.2 }}
-        className="bg-white rounded-xl shadow p-6 mt-6 mx-8"
+        className="bg-white rounded-xl shadow p-4 sm:p-6 mt-6 mx-2 sm:mx-8 overflow-x-auto"
       >
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2">
           <div className="font-bold text-[#204d2a]">Recent Expenses</div>
           <Link to="/expense" className="text-green-700 font-semibold hover:underline">View All</Link>
         </div>
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[500px]">
           <thead>
             <tr className="bg-[#f7faf8]">
               <th className="py-2 px-4 text-left">Date</th>
@@ -537,9 +537,9 @@ export default function Budgets() {
       />
 
       {/* Footer */}
-      <footer className="bg-[#204d2a] text-white px-8 py-3 flex flex-col md:flex-row items-center justify-between mt-8 rounded-b-xl">
+      <footer className="bg-[#204d2a] text-white px-4 sm:px-8 py-3 flex flex-col md:flex-row items-center justify-between mt-8 rounded-b-xl">
         <span className="text-sm">&copy; {new Date().getFullYear()} Newlands Tea Factory. All rights reserved.</span>
-        <div className="flex space-x-6 mt-2 md:mt-0">
+        <div className="flex flex-wrap gap-4 mt-2 md:mt-0">
           <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
           <Link to="/terms" className="hover:underline">Terms of Service</Link>
           <Link to="/contact" className="hover:underline">Contact</Link>

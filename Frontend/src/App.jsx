@@ -5,19 +5,21 @@ import Incomes from "./pages/Incomes";
 import Budgets from "./pages/Budgets";
 import Expenses from "./pages/Expenses";
 import FinancialOverview from "./pages/FinancialOverview";
+import Navbar from "./components/Navbar";
+
 
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Dashboard />} />
-     
-      <Route path="/income" element={<Incomes />} /> 
-      <Route path="/expense" element={<Expenses />} />
-      <Route path="/budget" element={<Budgets />} />
-      {/* <Route path="/report" element={<Report />} /> */}
-    <Route path="/finance" element={<FinancialOverview />} />
-
-    </Routes>
+    <>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/income" element={<Incomes />} /> 
+        <Route path="/expense" element={<Expenses />} />
+        <Route path="/budget" element={<Budgets />} />
+        <Route path="/finance" element={<FinancialOverview />} />
+      </Routes>
+    </>
   );
 }

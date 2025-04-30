@@ -16,15 +16,34 @@ import budgetRoutes from './routes/budgetRoutes.js';
 // Initialize the Express app
 const app = express();
 
+const allowedOrigins = [
+  'https://e-commerce-frontend-one-rouge.vercel.app', 
+  'https://deal-mate-admin-panel.vercel.app',
+  'https://e-commerce-frontend-y03qtvm4g-pasindus-projects-e32111c9.vercel.app',
+   'https://deal-mates-kohl.vercel.app'
+];
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
+// // CORS middleware configuration
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       // Allow requests with no origin (e.g., mobile apps, CURL)
+//       if (!origin) return callback(null, true);
+//       if (allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error('The CORS policy for this site does not allow access from the specified origin.'));
+//       }
+//     }
+//   })
+// );
 
 
-// Port configuration
-const port = process.env.PORT || 4000;
 
 
 
@@ -62,6 +81,11 @@ app.get('/', (req, res) => {
 
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI;
+
+// Port configuration
+const port = process.env.PORT || 4000;
+
+
 
 if (!mongoURI) {
   console.error('Mongo URI is missing! Please add it to your .env file.');

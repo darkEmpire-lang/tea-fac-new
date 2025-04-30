@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import html2canvas from "html2canvas";
 import download from "downloadjs";
 import {
@@ -11,7 +11,6 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from "recharts";
-import { getIncomes, getExpenses } from "../api/api";
 import {
   Table,
   Thead,
@@ -25,8 +24,16 @@ import {
   useToast,
   Badge,
   Box,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  DrawerBody,
+  VStack,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { FiDownload, FiTrash2 } from "react-icons/fi";
+import { FiDownload, FiTrash2, FiMenu } from "react-icons/fi";
+import { getIncomes, getExpenses } from "../api/api";
 
 const statementIcons = {
   "Income Statement": (
@@ -91,6 +98,8 @@ export default function FinancialOverview() {
 
   const statementRefs = useRef({});
   const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const location = useLocation();
 
   useEffect(() => {
     async function fetchData() {
@@ -216,10 +225,19 @@ export default function FinancialOverview() {
     </div>
   ));
 
+  // Responsive mobile menu links
+  const navLinks = [
+    { to: "/", label: "Dashboard" },
+    { to: "/expense", label: "Expense Dashboard" },
+    { to: "/budget", label: "Budget" },
+    { to: "/finance", label: "Finance" },
+    { to: "/reports", label: "Reports" },
+  ];
+
   return (
     <div className="min-h-screen bg-[#f7faf8] pb-12">
       {/* Navbar */}
-      <nav className="bg-[#204d2a] text-white px-8 py-4 flex items-center justify-between shadow">
+      <nav className="bg-[#204d2a] text-white px-4 md:px-8 py-4 flex items-center justify-between shadow relative">
         <div className="flex items-center">
           <span className="font-bold text-xl tracking-wide flex items-center">
             <svg className="w-7 h-7 mr-2" fill="none" viewBox="0 0 24 24">
@@ -229,26 +247,72 @@ export default function FinancialOverview() {
             Newlands Tea Factory
           </span>
         </div>
-        <div className="flex space-x-8 items-center font-medium">
-          <Link to="/" className="hover:underline hover:text-green-200 transition">Dashboard</Link>
-          <Link to="/finance" className="underline text-[#a7e3b6] font-bold">Finance</Link>
-          <Link to="/reports" className="hover:underline hover:text-green-200 transition">Reports</Link>
+        {/* Desktop Nav */}
+        <div className="hidden md:flex space-x-8 items-center font-medium">
+          {navLinks.map((nav) => (
+            <Link
+              key={nav.to}
+              to={nav.to}
+              className={`hover:underline transition ${
+                location.pathname === nav.to
+                  ? "underline text-[#a7e3b6] font-bold"
+                  : "hover:text-green-200"
+              }`}
+            >
+              {nav.label}
+            </Link>
+          ))}
         </div>
+        {/* Mobile Hamburger */}
+        <IconButton
+          aria-label="Open Menu"
+          icon={<FiMenu />}
+          display={{ base: "flex", md: "none" }}
+          variant="ghost"
+          color="white"
+          fontSize="2xl"
+          onClick={onOpen}
+        />
+        {/* Mobile Drawer */}
+        <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+          <DrawerOverlay />
+          <DrawerContent bg="#204d2a" color="white">
+            <DrawerCloseButton mt={2} />
+            <DrawerBody>
+              <VStack spacing={6} mt={12} align="stretch">
+                {navLinks.map((nav) => (
+                  <Link
+                    key={nav.to}
+                    to={nav.to}
+                    className={`hover:underline transition text-lg ${
+                      location.pathname === nav.to
+                        ? "underline text-[#a7e3b6] font-bold"
+                        : "hover:text-green-200"
+                    }`}
+                    onClick={onClose}
+                  >
+                    {nav.label}
+                  </Link>
+                ))}
+              </VStack>
+            </DrawerBody>
+          </DrawerContent>
+        </Drawer>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4">
         {/* Title */}
         <div className="mt-8 mb-2">
-          <h1 className="text-3xl font-bold text-[#204d2a]">Financial Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#204d2a]">Financial Management</h1>
           <p className="text-gray-600">Generate and manage financial statements</p>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 my-8">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 my-8">
           <Box bg="white" rounded="xl" shadow="card" p={6} display="flex" alignItems="center">
             <Box>
               <div className="text-gray-500">Revenue</div>
-              <div className="text-2xl font-bold text-[#204d2a]">${totalRevenue.toLocaleString()}</div>
+              <div className="text-xl sm:text-2xl font-bold text-[#204d2a]">${totalRevenue.toLocaleString()}</div>
             </Box>
             <Box ml="auto" bg="#e7f8ec" rounded="full" p={3}>
               <svg className="w-7 h-7 text-[#2e865f]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -260,7 +324,7 @@ export default function FinancialOverview() {
           <Box bg="white" rounded="xl" shadow="card" p={6} display="flex" alignItems="center">
             <Box>
               <div className="text-gray-500">Expenses</div>
-              <div className="text-2xl font-bold text-[#204d2a]">${totalExpense.toLocaleString()}</div>
+              <div className="text-xl sm:text-2xl font-bold text-[#204d2a]">${totalExpense.toLocaleString()}</div>
             </Box>
             <Box ml="auto" bg="#e7f8ec" rounded="full" p={3}>
               <svg className="w-7 h-7 text-[#2e865f]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -272,7 +336,7 @@ export default function FinancialOverview() {
           <Box bg="white" rounded="xl" shadow="card" p={6} display="flex" alignItems="center">
             <Box>
               <div className="text-gray-500">Profit</div>
-              <div className="text-2xl font-bold text-[#204d2a]">${profit.toLocaleString()}</div>
+              <div className="text-xl sm:text-2xl font-bold text-[#204d2a]">${profit.toLocaleString()}</div>
             </Box>
             <Box ml="auto" bg="#e7f8ec" rounded="full" p={3}>
               <svg className="w-7 h-7 text-[#2e865f]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -284,7 +348,7 @@ export default function FinancialOverview() {
           <Box bg="white" rounded="xl" shadow="card" p={6} display="flex" alignItems="center">
             <Box>
               <div className="text-gray-500">Cash Flow</div>
-              <div className="text-2xl font-bold text-[#204d2a]">${cashflow.toLocaleString()}</div>
+              <div className="text-xl sm:text-2xl font-bold text-[#204d2a]">${cashflow.toLocaleString()}</div>
             </Box>
             <Box ml="auto" bg="#e7f8ec" rounded="full" p={3}>
               <svg className="w-7 h-7 text-[#2e865f]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -296,7 +360,7 @@ export default function FinancialOverview() {
         </div>
 
         {/* Chart */}
-        <div className="bg-white rounded-xl shadow mb-10 p-6">
+        <div className="bg-white rounded-xl shadow mb-10 p-4 sm:p-6">
           <div className="font-semibold text-[#204d2a] mb-2">Profit Trend</div>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={profitTrend}>
@@ -334,7 +398,7 @@ export default function FinancialOverview() {
           <Box bg="white" rounded="xl" shadow="card" p={6}>
             <form className="flex flex-col gap-4" onSubmit={handleGenerate}>
               <div className="font-bold text-[#204d2a] mb-4">Statement Parameters</div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-[#204d2a] mb-1">Start Date</label>
                   <input
@@ -403,9 +467,9 @@ export default function FinancialOverview() {
         </div>
 
         {/* Recent Statements Table */}
-        <Box bg="white" rounded="xl" shadow="card" p={6} mb={8}>
+        <Box bg="white" rounded="xl" shadow="card" p={6} mb={8} overflowX="auto">
           <div className="font-bold text-[#204d2a] mb-4">Recent Statements</div>
-          <Table variant="striped" colorScheme="gray" size="md">
+          <Table variant="striped" colorScheme="gray" size="md" minW="600px">
             <Thead>
               <Tr bg="#e7f8ec">
                 <Th>Type</Th>

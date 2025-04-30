@@ -21,7 +21,8 @@ import {
   Tooltip as ChakraTooltip,
   Box,
 } from "@chakra-ui/react";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiArrowLeft } from "react-icons/fi";
+
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -152,7 +153,6 @@ function ExpenseForm({ onSave, initialData, onClose }) {
           required
           className="w-full border rounded px-3 py-2"
           onKeyDown={e => {
-            // Block letters and e/E/+/-/. at first char
             if (
               ["e", "E", "+", "-"].includes(e.key) ||
               (e.key === "." && (form.amount.includes(".") || form.amount.length === 0))
@@ -319,32 +319,42 @@ export default function Expenses() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-2 sm:p-6 bg-gray-50 min-h-screen">
+
+
+       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8">
+              <div>
+                <h2 className="text-3xl font-bold text-green-900 mb-1">Expense Dashboard</h2>
+                <p className="text-gray-600">Track all Expenses sources and trends for your tea factory</p>
+              </div>
+            
+            </div>
+      
       {/* Header Bar */}
-      <div className="bg-green-900 rounded-t-xl px-6 py-4 flex items-center justify-between">
+      <div className="bg-white rounded-t-xl px-2 sm:px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-white text-xl font-bold tracking-wide flex items-center">
-          <button
+          <IconButton
+            icon={<FiArrowLeft />}
             onClick={() => window.location.href = "/"}
-            className="mr-2 hover:scale-110 transition"
-            title="Back to Dashboard"
-          >
-            <svg width="26" height="26" fill="none" viewBox="0 0 24 24">
-              <path fill="#fff" d="M15 19l-7-7 7-7"/>
-            </svg>
-          </button>
+            aria-label="Back to Dashboard"
+            colorScheme="whiteAlpha"
+            variant="ghost"
+            className="mr-2"
+            fontSize="2xl"
+          />
           <svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M12 2C6.48 2 2 6.48 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10C22 6.48 17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-4.41 3.59-8 8-8 4.41 0 8 3.59 8 8 0 4.41-3.59 8-8 8z"></path><path fill="#fff" d="M13 7h-2v6h6v-2h-4z"></path></svg>
-          Newlands Tea Factory
+          <span className="ml-2">Newlands Tea Factory</span>
         </span>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full sm:w-auto mt-2 sm:mt-0">
           <input
             type="text"
             placeholder="Search by category, desc, ID..."
-            className="bg-green-800 text-white rounded px-3 py-1 w-56"
+            className="bg-white text-white rounded px-3 py-1 w-full sm:w-56"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
           <select
-            className="bg-green-800 text-white rounded px-2 py-1"
+            className="bg-white text-black rounded px-2 py-1 w-full sm:w-auto"
             value={filterCat}
             onChange={e => setFilterCat(e.target.value)}
           >
@@ -355,7 +365,7 @@ export default function Expenses() {
           </select>
           <input
             type="date"
-            className="bg-green-800 text-white rounded px-2 py-1"
+            className="bg-white text-black rounded px-2 py-1 w-full sm:w-auto"
             value={filterDate}
             onChange={e => setFilterDate(e.target.value)}
           />
@@ -363,7 +373,7 @@ export default function Expenses() {
             colorScheme="gray"
             variant="outline"
             size="sm"
-            className="!bg-green-700 !text-white px-3 rounded hover:!bg-green-800 transition"
+            className="!bg-white !text-black px-3 rounded hover:!bg-green-800 transition w-full sm:w-auto"
             onClick={() => { setFilterCat(""); setFilterDate(""); setSearch(""); }}
           >
             Reset
@@ -372,7 +382,7 @@ export default function Expenses() {
             colorScheme="green"
             variant="solid"
             size="sm"
-            className="px-3 rounded hover:bg-green-600 transition"
+            className="px-3 rounded hover:bg-white transition w-full sm:w-auto"
             onClick={() => setShowChart(v => !v)}
             title="Show Doughnut Chart"
           >
