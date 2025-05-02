@@ -22,6 +22,18 @@ import {
   Box,
   useToast,
   Input,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  Select,
+  VStack,
 } from "@chakra-ui/react";
 import { FiEdit2, FiTrash2, FiArrowLeft, FiFileText } from "react-icons/fi";
 import html2canvas from "html2canvas";
@@ -200,7 +212,7 @@ const ExpensePNGReport = React.forwardRef(
   )
 );
 
-function ExpenseForm({ onSave, initialData, onClose }) {
+function AddEditExpenseModal({ isOpen, onClose, onSave, initialData }) {
   const [form, setForm] = useState({
     category: "",
     amount: "",
@@ -208,7 +220,8 @@ function ExpenseForm({ onSave, initialData, onClose }) {
     description: "",
     status: "Pending",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const toast = useToast();
 
   useEffect(() => {
     if (initialData) {
@@ -219,8 +232,18 @@ function ExpenseForm({ onSave, initialData, onClose }) {
         description: initialData.description || "",
         status: initialData.status || "Pending",
       });
+      setErrors({});
+    } else {
+      setForm({
+        category: "",
+        amount: "",
+        date: "",
+        description: "",
+        status: "Pending",
+      });
+      setErrors({});
     }
-  }, [initialData]);
+  }, [initialData, isOpen]);
 
   const handleAmountInput = (e) => {
     const { value } = e.target;
@@ -239,147 +262,142 @@ function ExpenseForm({ onSave, initialData, onClose }) {
   };
 
   const validate = () => {
-    if (!form.category) return "Category is required";
-    if (!form.amount) return "Amount is required";
-    if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(form.amount)) return "Amount must be a valid number";
-    if (isNaN(form.amount) || Number(form.amount) <= 0)
-      return "Amount must be a number greater than 0";
-    if (!form.date) return "Date is required";
-    return "";
+    let errs = {};
+    if (!form.category) errs.category = "Category is required";
+    if (!form.amount) errs.amount = "Amount is required";
+    else if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(form.amount)) errs.amount = "Amount must be a valid number";
+    else if (isNaN(form.amount) || Number(form.amount) <= 0) errs.amount = "Amount must be greater than 0";
+    if (!form.date) errs.date = "Date is required";
+    return errs;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const err = validate();
-    if (err) {
-      setError(err);
-      return;
-    }
-    setError("");
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
     onSave({
       ...form,
       amount: Number(form.amount),
-      expenseId: initialData?.expenseId || nanoid(8),
     });
-    setForm({
-      category: "",
-      amount: "",
-      date: "",
-      description: "",
-      status: "Pending",
+    toast({
+      title: initialData ? "Expense updated!" : "Expense added!",
+      status: "success",
+      duration: 1200,
+      isClosable: true,
     });
+    onClose();
   };
 
   return (
-    <form
-      className="bg-white rounded-xl p-6 shadow flex flex-col gap-4 animate-fadeIn"
-      onSubmit={handleSubmit}
-    >
-      <h3 className="text-lg font-semibold mb-2">
-        {initialData ? "Edit Expense" : "Add New Expense"}
-      </h3>
-      <div>
-        <label className="block text-sm font-medium mb-1">Expense Category</label>
-        <select
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          required
-          className="w-full border rounded px-3 py-2"
-        >
-          <option value="">Select category</option>
-          {CATEGORIES.map((cat) => (
-            <option value={cat} key={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Amount</label>
-        <input
-          type="text"
-          name="amount"
-          value={form.amount}
-          onChange={handleChange}
-          min={1}
-          inputMode="decimal"
-          pattern="[0-9]*"
-          required
-          className="w-full border rounded px-3 py-2"
-          onKeyDown={e => {
-            if (
-              ["e", "E", "+", "-"].includes(e.key) ||
-              (e.key === "." && (form.amount.includes(".") || form.amount.length === 0))
-            ) {
-              e.preventDefault();
-            }
-          }}
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Date</label>
-        <input
-          type="date"
-          name="date"
-          value={form.date}
-          onChange={handleChange}
-          required
-          className="w-full border rounded px-3 py-2"
-          // inputMode removed for date to fix mobile
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
-        <input
-          type="text"
-          name="description"
-          value={form.description}
-          onChange={handleChange}
-          className="w-full border rounded px-3 py-2"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Status</label>
-        <select
-          name="status"
-          value={form.status}
-          onChange={handleChange}
-          required
-          className="w-full border rounded px-3 py-2"
-        >
-          <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
-        </select>
-      </div>
-      {error && <div className="text-red-600 text-sm">{error}</div>}
-      <Button
-        type="submit"
-        colorScheme="green"
-        size="md"
-        className="w-full"
-      >
-        {initialData ? "Update Expense" : "Submit Expense"}
-      </Button>
-      {onClose && (
-        <Button
-          type="button"
-          variant="ghost"
-          colorScheme="gray"
-          onClick={onClose}
-          className="w-full mt-1"
-        >
-          Cancel
-        </Button>
-      )}
-    </form>
+    <Modal isOpen={isOpen} onClose={onClose} size="md" isCentered motionPreset="slideInBottom">
+      <ModalOverlay />
+      <ModalContent borderRadius="xl" boxShadow="2xl">
+        <ModalHeader fontWeight="bold" color="green.800" fontSize="2xl" borderBottom="1px solid #e6f9ed">
+          {initialData ? "Edit Expense" : "Add Expense"}
+        </ModalHeader>
+        <ModalCloseButton />
+        <form onSubmit={handleSubmit}>
+          <ModalBody py={6}>
+            <VStack spacing={4}>
+              <FormControl isInvalid={!!errors.category} isRequired>
+                <FormLabel>Category</FormLabel>
+                <Select
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                  placeholder="Select category"
+                  bg="gray.50"
+                >
+                  {CATEGORIES.map((cat) => (
+                    <option value={cat} key={cat}>{cat}</option>
+                  ))}
+                </Select>
+                <FormErrorMessage>{errors.category}</FormErrorMessage>
+              </FormControl>
+              <FormControl isInvalid={!!errors.amount} isRequired>
+                <FormLabel>Amount</FormLabel>
+                <Input
+                  name="amount"
+                  type="text"
+                  value={form.amount}
+                  onChange={handleChange}
+                  inputMode="decimal"
+                  pattern="[0-9]*"
+                  bg="gray.50"
+                  onKeyDown={e => {
+                    if (
+                      ["e", "E", "+", "-"].includes(e.key) ||
+                      (e.key === "." && (form.amount.includes(".") || form.amount.length === 0))
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  placeholder="Enter amount"
+                />
+                <FormErrorMessage>{errors.amount}</FormErrorMessage>
+              </FormControl>
+              <FormControl isInvalid={!!errors.date} isRequired>
+                <FormLabel>Date</FormLabel>
+                <Input
+                  name="date"
+                  type="date"
+                  value={form.date}
+                  onChange={handleChange}
+                  bg="gray.50"
+                />
+                <FormErrorMessage>{errors.date}</FormErrorMessage>
+              </FormControl>
+              <FormControl>
+                <FormLabel>Description</FormLabel>
+                <Input
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  bg="gray.50"
+                  placeholder="Description (optional)"
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Status</FormLabel>
+                <Select
+                  name="status"
+                  value={form.status}
+                  onChange={handleChange}
+                  bg="gray.50"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                </Select>
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          <ModalFooter borderTop="1px solid #e6f9ed">
+            <Button
+              colorScheme="green"
+              mr={3}
+              type="submit"
+              size="md"
+              fontWeight="bold"
+              px={8}
+              boxShadow="md"
+            >
+              {initialData ? "Update" : "Add"}
+            </Button>
+            <Button onClick={onClose} variant="ghost" colorScheme="gray">
+              Cancel
+            </Button>
+          </ModalFooter>
+        </form>
+      </ModalContent>
+    </Modal>
   );
 }
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
   const [editData, setEditData] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("");
   const [filterDate, setFilterDate] = useState("");
@@ -418,7 +436,7 @@ export default function Expenses() {
     const res = await getExpenses();
     setExpenses(res.data);
     setEditData(null);
-    setShowForm(false);
+    setModalOpen(false);
   };
 
   const handleDelete = async (id) => {
@@ -513,16 +531,7 @@ export default function Expenses() {
         </div>
         <div className="flex flex-col md:flex-row gap-3 mt-4 md:mt-0">
           <Button
-            onClick={handleDownloadPNG}
-            colorScheme="green"
-            size="md"
-            className="shadow-lg"
-            leftIcon={<FiFileText />}
-          >
-            Export Report
-          </Button>
-          <Button
-            onClick={() => setShowForm(true)}
+            onClick={() => setModalOpen(true)}
             colorScheme="green"
             size="md"
             className="shadow-lg"
@@ -533,6 +542,15 @@ export default function Expenses() {
             }
           >
             Add Expense
+          </Button>
+          <Button
+            onClick={handleDownloadPNG}
+            colorScheme="green"
+            size="md"
+            className="shadow-lg"
+            leftIcon={<FiFileText />}
+          >
+            Export Report
           </Button>
         </div>
       </div>
@@ -643,16 +661,15 @@ export default function Expenses() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Form */}
         <div>
-          {showForm || editData ? (
-            <ExpenseForm
-              onSave={handleSave}
-              initialData={editData}
-              onClose={() => {
-                setEditData(null);
-                setShowForm(false);
-              }}
-            />
-          ) : null}
+          <AddEditExpenseModal
+            isOpen={modalOpen || !!editData}
+            onClose={() => {
+              setModalOpen(false);
+              setEditData(null);
+            }}
+            onSave={handleSave}
+            initialData={editData}
+          />
         </div>
         {/* Table */}
         <div className="md:col-span-2">
