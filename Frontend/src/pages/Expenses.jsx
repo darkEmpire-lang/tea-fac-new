@@ -326,6 +326,7 @@ function ExpenseForm({ onSave, initialData, onClose }) {
           onChange={handleChange}
           required
           className="w-full border rounded px-3 py-2"
+          // inputMode removed for date to fix mobile
         />
       </div>
       <div>
@@ -504,13 +505,13 @@ export default function Expenses() {
 
   return (
     <div className="p-2 sm:p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8">
         <div>
           <h2 className="text-3xl font-bold text-green-900 mb-1">Expense Dashboard</h2>
           <p className="text-gray-600">Track all Expenses sources and trends for your tea factory</p>
         </div>
         <div className="flex flex-col md:flex-row gap-3 mt-4 md:mt-0">
-          
           <Button
             onClick={handleDownloadPNG}
             colorScheme="green"
@@ -519,6 +520,19 @@ export default function Expenses() {
             leftIcon={<FiFileText />}
           >
             Export Report
+          </Button>
+          <Button
+            onClick={() => setShowForm(true)}
+            colorScheme="green"
+            size="md"
+            className="shadow-lg"
+            leftIcon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M12 4v16m8-8H4"/>
+              </svg>
+            }
+          >
+            Add Expense
           </Button>
         </div>
       </div>
@@ -638,16 +652,7 @@ export default function Expenses() {
                 setShowForm(false);
               }}
             />
-          ) : (
-            <Button
-              colorScheme="green"
-              size="lg"
-              className="w-full font-semibold rounded-xl shadow"
-              onClick={() => setShowForm(true)}
-            >
-              + Add New Expense
-            </Button>
-          )}
+          ) : null}
         </div>
         {/* Table */}
         <div className="md:col-span-2">
