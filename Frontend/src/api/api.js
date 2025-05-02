@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://newland-tea-factory-backend.vercel.app';
+const API_URL = 'https://newland-tea-factory-backend.vercel.app/api';
 
 export const getIncomes = () => axios.get(`${API_URL}/incomes`);
 export const addIncome = (data) => axios.post(`${API_URL}/incomes`, data);
