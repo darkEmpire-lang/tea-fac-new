@@ -3,9 +3,7 @@ import cors from 'cors';
 import 'dotenv/config';
 import mongoose from 'mongoose';
 import connectCloudinary from './config/cloudinary.js';
-import userRouter from './routes/userRoute.js';
 import bodyParser from 'body-parser'; // Use 'import' for body-parser
-import ticketRoutes from "./routes/ticketRoutes.js";
 import helmet from 'helmet'
 
 import incomeRoutes from './routes/incomeRoutes.js';
@@ -19,7 +17,7 @@ const app = express();
 
 const allowedOrigins = [
   'https://newlands-tea-factory-bcjthgnry-pasindus-projects-e32111c9.vercel.app',
-  'localhost:5173',  
+  'http://localhost:5173',  
   
 ];
 
@@ -67,8 +65,6 @@ app.use(express.json());
 connectCloudinary();
 
 // API Endpoints
-app.use('/api/user', userRouter);
-app.use("/api/tickets", ticketRoutes);
 app.use('/api/incomes', incomeRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/budgets', budgetRoutes);
