@@ -16,7 +16,7 @@ import budgetRoutes from './routes/budgetRoutes.js';
 const app = express();
 
 const allowedOrigins = [
-  'https://newlands-tea-factory-bcjthgnry-pasindus-projects-e32111c9.vercel.app',
+  'https://newlands-tea-factory.vercel.app',
   'http://localhost:5173',  
   
 ];
