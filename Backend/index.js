@@ -9,7 +9,7 @@ import helmet from 'helmet'
 import incomeRoutes from './routes/incomeRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
 import budgetRoutes from './routes/budgetRoutes.js';
-
+import userRouter from './routes/userRoute.js';
 
 
 
@@ -68,7 +68,7 @@ connectCloudinary();
 app.use('/api/incomes', incomeRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/budgets', budgetRoutes);
-
+app.use('/api/user', userRouter);
 
 
 // Sample Route to Check Server Status
