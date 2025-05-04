@@ -30,19 +30,13 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // CORS middleware configuration
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('The CORS policy for this site does not allow access from the specified origin.'));
-      }
-    }
-  })
-);
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
+app.options('*', cors());
 
 
 
