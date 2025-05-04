@@ -9,6 +9,7 @@ import helmet from 'helmet'
 import incomeRoutes from './routes/incomeRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
 import budgetRoutes from './routes/budgetRoutes.js';
+import userRouter from './routes/userRoute.js';
 
 
 
@@ -61,13 +62,14 @@ app.use(express.json());
  app.use(bodyParser.json()); // Parse JSON bodies
  app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
-// Connect Cloudinary
+
 connectCloudinary();
 
-// API Endpoints
 app.use('/api/incomes', incomeRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/budgets', budgetRoutes);
+app.use('/api/user', userRouter);
+
 
 
 
