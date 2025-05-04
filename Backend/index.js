@@ -12,7 +12,7 @@ import budgetRoutes from './routes/budgetRoutes.js';
 
 
 
-// Initialize the Express app
+
 const app = express();
 
 const allowedOrigins = [
@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-// CORS middleware configuration
+
 app.use(
   cors({
     origin: function (origin, callback) {
