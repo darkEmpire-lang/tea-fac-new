@@ -18,7 +18,9 @@ const app = express();
 
 const allowedOrigins = [
   'https://newlands-tea-factory.vercel.app',
-  'http://localhost:5173',  
+  'http://localhost:5173', 
+  'https://country-spot-explore.vercel.app',
+   
   
 ];
 
