@@ -9,10 +9,10 @@ import helmet from 'helmet'
 import incomeRoutes from './routes/incomeRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
 import budgetRoutes from './routes/budgetRoutes.js';
-import userRouter from './routes/userRoute.js';
 
 
 
+// Initialize the Express app
 const app = express();
 
 const allowedOrigins = [
@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-
+// CORS middleware configuration
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -68,7 +68,7 @@ connectCloudinary();
 app.use('/api/incomes', incomeRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/budgets', budgetRoutes);
-app.use('/api/user', userRouter);
+
 
 
 // Sample Route to Check Server Status
